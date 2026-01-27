@@ -58,9 +58,6 @@ public class RaygunTest {
               client.send(e);
             }
  
-
-
-        
         System.out.println("Sent to Raygun!");
         
     }
