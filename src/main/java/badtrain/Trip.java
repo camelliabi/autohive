@@ -1,7 +1,7 @@
 package badtrain;
 
 //error: missing import
-//import java.util.*;
+import java.util.*;
 
 public class Trip {
 	public List<Section> sections = new ArrayList<Section>();
@@ -13,7 +13,7 @@ public class Trip {
 		this.sections = new ArrayList<>();
 		
 		//error: type
-		this.finalTime = 9999.99;
+		this.finalTime = 9999;
 		this.departTime = 0000;
 	}
 	

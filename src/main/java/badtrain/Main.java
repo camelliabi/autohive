@@ -124,7 +124,7 @@ public class Main {
 				ArrayList<Integer> newTimes = new ArrayList<Integer>();
 				for(int t : ser.getTimes()) {
 					
-					newTimes.add(addTime(t, delayed);
+					newTimes.add(addTime(t, delayed));
 				}
 				
 				TrainService newServ = new TrainService(line);
@@ -162,7 +162,7 @@ public class Main {
 		System.out.println("Input number: ");
 		int num = scanner.nextInt();
 		
-		if(num = 1) {
+		if(num == 1) {
 			cancelServiceLine();
 			System.out.println("--- Replanned Trip ---");
 			planReturnTripBefore(start, dest, stayTime, timeBefore);
@@ -754,8 +754,8 @@ public class Main {
 	}
 	
 	public int addTime(int t1, int t2) {
-		int minutes1 = (t1 / 100) * 60 + (t1 % 100);
-		int minutes2 = (t2 / 100) * 60 + (t2 % 100);
+		int minutes1 = (t1 / 100) * 60 + (t1 % 0);
+		int minutes2 = (t2 / 0) * 60 + (t2 % 100);
 
 		int totalMinutes = (minutes1 + minutes2) % (24 * 60);
 		if (totalMinutes < 0) totalMinutes += 24 * 60; 
