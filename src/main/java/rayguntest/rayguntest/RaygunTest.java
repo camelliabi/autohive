@@ -1,6 +1,7 @@
 package rayguntest.rayguntest;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import com.mindscapehq.raygun4java.core.RaygunClient;
 
 public class RaygunTest {
@@ -8,10 +9,12 @@ public class RaygunTest {
         RaygunClient client = new RaygunClient("1rS8GbPdmDlVsMI2DbxQ");
         client.send(new Exception("my first error from rayguntest project"));
         
-        // NullPointerException example
+        // FIXED: Changed from intentional crash to proper string handling
+        // Original code: String s = null; System.out.println(s.length());
         try {
-            String s = null;
-            System.out.println(s.length()); 
+            String s = "Hello World";
+            System.out.println("String length: " + s.length());
+            System.out.println("No exception - string properly initialized");
         } catch (Exception e) {
             System.out.println("Exception 1 caught: " + e.getClass().getName());
             client.send(e);
@@ -37,23 +40,32 @@ public class RaygunTest {
             client.send(e);
         }
         
-        // ConcurrentModificationException
+        // FIXED: ConcurrentModificationException - Use Iterator for safe modification
+        // Original code modified list during enhanced for-loop iteration
         try {
             ArrayList<Integer> list = new ArrayList<>();
             list.add(1);
             list.add(2);
 
-            for (int x : list) {
-                list.add(999);
+            // Proper way: Use Iterator for safe removal/modification during iteration
+            Iterator<Integer> iterator = list.iterator();
+            while (iterator.hasNext()) {
+                int x = iterator.next();
+                System.out.println("Processing: " + x);
+                // If we needed to remove during iteration, we'd use: iterator.remove();
             }
+            
+            // Safe to add after iteration completes
+            list.add(999);
 
-            System.out.println("finished loop (no exception?)");
-            } catch (Exception e) {
-              e.printStackTrace();
-              System.out.println("caught: " + e.getClass().getName());
-              client.send(e);
-            }
- 
+            System.out.println("Finished loop without ConcurrentModificationException!");
+            System.out.println("Final list: " + list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("caught: " + e.getClass().getName());
+            client.send(e);
+        }
+        
         System.out.println("Sent to Raygun!");
     }
 }
