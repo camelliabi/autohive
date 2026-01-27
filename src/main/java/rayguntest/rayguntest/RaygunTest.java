@@ -1,7 +1,7 @@
 package rayguntest.rayguntest;
 
 
-
+import java.util.ArrayList;
 
 import com.mindscapehq.raygun4java.core.RaygunClient;
 
@@ -10,19 +10,56 @@ public class RaygunTest {
         RaygunClient client = new RaygunClient("1rS8GbPdmDlVsMI2DbxQ");
         client.send(new Exception("my first error from rayguntest project"));
         
-        //null pointer
+        //nullpointer
         try {
             String s = null;
             System.out.println(s.length()); 
-            
-            String[] arr = new String[5];
-            System.out.println(arr[0]);
+        } catch (Exception e) {
+            client.send(e);
+            //System.out.println("Exception 1 sent to Raygun");
+        }
+        
+
+        // ArrayIndexOutOfBoundsException
+        try {
+        	int[] a = {1, 2, 3};
+            for (int i = 0; i <= a.length; i++) {
+        	  System.out.println(a[i]);
+        } 
+        } catch (Exception e) {
+        	client.send(e);
+        }
+
+        //nullpointer
+        try {
+        	String[] arr = new String[3];
+        	System.out.println(arr[0].toUpperCase());
             
         } catch (Exception e) {
             client.send(e);
-            System.out.println("Exception sent to Raygun");
+            //System.out.println("Exception sent to Raygun");
         }
         
+ 
+        //ConcurrentModificationException
+        try {
+        	ArrayList<Integer> list = new ArrayList<>();
+            list.add(1);
+            list.add(2);
+
+            for (int x : list) {
+            	list.add(999);
+            }
+
+            System.out.println("finished loop (no exception?)");
+            } catch (Exception e) {
+              e.printStackTrace();
+              System.out.println("caught: " + e.getClass().getName());
+              client.send(e);
+            }
+ 
+
+
         
         System.out.println("Sent to Raygun!");
         
