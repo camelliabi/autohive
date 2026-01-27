@@ -13,13 +13,8 @@ public class Main {
 	Map<TrainLine, List<TrainService>> lineServices = new HashMap<>();
 	
 	public Main() {
-		RaygunClient client = new RaygunClient("1rS8GbPdmDlVsMI2DbxQ");
-		try {
 		loadAll();
 		userInterface();
-		} catch (Exception e) {
-			client.send(e);
-		}
 	}
 	
 	public void userInterface() {
@@ -144,7 +139,7 @@ public class Main {
 		}
 		lineServices.put(line, services);
 	}
-	
+
 	
 	//Plan return trip BEFORE
 	public void tripBeforeCancel() {
@@ -772,6 +767,11 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
+		Thread.setDefaultUncaughtExceptionHandler((thread, throwable)-> {
+			new RaygunClient("1rS8GbPdmDlVsMI2DbxQ").send(new Exception(throwable));
+		
+		});
+		
 		new Main();
 	}
 }

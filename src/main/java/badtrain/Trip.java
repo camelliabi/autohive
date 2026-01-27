@@ -1,7 +1,7 @@
 package badtrain;
 
 //error: missing import
- //import java.util.*;
+//import java.util.*;
 
 public class Trip {
 	public List<Section> sections = new ArrayList<Section>();
