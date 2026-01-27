@@ -15,9 +15,7 @@ public class Section {
 		this.serv = serv;
 		this.timeA = timeA;
 		this.timeB = timeB;	
-	}
-	
-	
+	}	
 	
 	
 }

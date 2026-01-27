@@ -6,6 +6,7 @@ package badtrain;
 // Code for SWEN502, Assignment W2
 
 import java.util.*;
+//import not used
 import java.io.*;
 
 /**
@@ -23,6 +24,7 @@ public class Station{
 
     private String name;  
     private int zone;          // fare zone
+    //field not used
     private double distance;   // distance from Wellington
     private Set<TrainLine> trainLines = new HashSet<TrainLine>(); 
 
