@@ -6,7 +6,6 @@ package badtrain;
 // Code for SWEN502, Assignment W2
 
 import java.util.*;
-import java.io.*;
 
 /**
  * TrainLine
