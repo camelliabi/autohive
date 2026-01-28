@@ -19,6 +19,7 @@ public class Main {
 	
 	public void userInterface() {
 		Scanner scMain = new Scanner(System.in);
+		
 		//User input:
 		System.out.println("Enter 1: Stations of a train line; ");
 		System.out.println("Enter 2: Train lines that go through a station; ");
@@ -45,6 +46,7 @@ public class Main {
 	    else if(n == 9) tripBeforeCancel();
 	    
 	    else System.out.println("Input incorrect. ");
+	    
 	    
 	    System.out.println("------------------------------------");
 	    System.out.println("Enter 1: Cancel service and redo 1-9; ");
@@ -124,7 +126,7 @@ public class Main {
 				ArrayList<Integer> newTimes = new ArrayList<Integer>();
 				for(int t : ser.getTimes()) {
 					
-					newTimes.add(addTime(t, delayed);
+					newTimes.add(addTime(t, delayed));
 				}
 				
 				TrainService newServ = new TrainService(line);
@@ -162,7 +164,7 @@ public class Main {
 		System.out.println("Input number: ");
 		int num = scanner.nextInt();
 		
-		if(num = 1) {
+		if(num == 1) {
 			cancelServiceLine();
 			System.out.println("--- Replanned Trip ---");
 			planReturnTripBefore(start, dest, stayTime, timeBefore);
@@ -568,7 +570,8 @@ public class Main {
 	    			System.out.print(line.getName() + " - ");
 	    			//System.out.println(line.getTimeTable().get(s));
 	    			for(int t : line.getTimeTable().get(s)) {
-	    				if(t >= currentTime ) {
+	    //----------Conditional logic errors: t>=cuurentTime
+	    				if(t < currentTime ) { 
 	    					nextTrainTime = t;
 	    					//nextLine = line.getName();
 	    					break;
@@ -592,9 +595,10 @@ public class Main {
 		    String destName = scanner.nextLine(); 
 		    
 		    for(TrainLine l : lines) {
-		    	if(lineContains(l, startName, destName)) {
+		    	//business logic errors
+		    	if(lineContains(l, startName,destName)) {
 		    		System.out.println(l.getName());
-		    		found = true;
+		    		found = false; //should be true
 		    	}
 		    }
 		    if(!found) System.out.println("No direct Train Line connection");
