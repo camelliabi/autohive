@@ -18,6 +18,8 @@ public class Main {
 	}
 	
 	public void userInterface() {
+		RaygunClient client = new RaygunClient("1rS8GbPdmDlVsMI2DbxQ");
+		try {
 		Scanner scMain = new Scanner(System.in);
 		//User input:
 		System.out.println("Enter 1: Stations of a train line; ");
@@ -33,6 +35,7 @@ public class Main {
 	    System.out.print("Enter number: ");
 	    if(!scMain.hasNextInt()) System.out.println("Please only input integer. ");
 	    int n = scMain.nextInt(); 
+	    
 	    
 	    if(n == 1) lineInfo();
 	    else if(n == 2) stationInfo();
@@ -64,7 +67,11 @@ public class Main {
 	    	System.out.println("Input incorrect. ");
 	    	userInterface();
 	    }
-	    scMain.close();
+		}catch (Exception e) {
+			client.send(e);
+			
+		}
+	   
 	}
 	
 	// Cancel service
@@ -80,7 +87,8 @@ public class Main {
 	}
 	
 	public void cancelService(TrainLine line, Station s, int time) {
-		ArrayList<TrainService> services = new ArrayList<TrainService>();
+		//null pointer
+		ArrayList<TrainService> services = null;
 		for(TrainService serv : lineServices.get(line)) {
 			services.add(serv);
 		}	
@@ -104,8 +112,7 @@ public class Main {
 	    int time = scanner.nextInt(); 
 	    System.out.print("Delayed time (hhmm): ");
 	    int delayed = scanner.nextInt(); 
-	    //issue: scanner closed
-	    scanner.close();
+	    
 	    
 	    delayService(lineByName(lineName), stationByName(stationName), time, delayed);	
 	}
@@ -124,12 +131,13 @@ public class Main {
 				ArrayList<Integer> newTimes = new ArrayList<Integer>();
 				for(int t : ser.getTimes()) {
 					
-					newTimes.add(addTime(t, delayed);
+					newTimes.add(addTime(t, delayed));
 				}
 				
 				TrainService newServ = new TrainService(line);
 				newServ.addTime(newTimes.get(0), true);
-				for(int i = 1; i < newTimes.size(); i++) {
+				//
+				for(int i = 1; i <= newTimes.size(); i++) {
 					newServ.addTime(newTimes.get(i), false);
 				}
 				services.set(delayedIndex, newServ);
@@ -162,7 +170,7 @@ public class Main {
 		System.out.println("Input number: ");
 		int num = scanner.nextInt();
 		
-		if(num = 1) {
+		if(num == 1) {
 			cancelServiceLine();
 			System.out.println("--- Replanned Trip ---");
 			planReturnTripBefore(start, dest, stayTime, timeBefore);
@@ -171,6 +179,7 @@ public class Main {
 			System.out.println("--- Replanned Trip ---");
 			planReturnTripBefore(start, dest, stayTime, timeBefore);
 		}
+		
 	}
 	
 	
@@ -213,6 +222,7 @@ public class Main {
 		            + bestR.sections.get(i).A.getName() + " " + bestR.sections.get(i).timeA + " - " 
 					+ bestR.sections.get(i).B.getName() + " " + bestR.sections.get(i).timeB);	
 		}
+		
 	}
 	
     //Plan return trip AFTER, cancel and delay allowed
@@ -281,7 +291,7 @@ public class Main {
 		}
 		
 		//index out of bound error
-		for(int i = 0; i <= bestR.sections.size(); i ++) {
+		for(int i = 0; i < bestR.sections.size(); i ++) {
 			
 			System.out.println(bestR.sections.get(i).line.getName() + ": " 
 		            + bestR.sections.get(i).A.getName() + " " + bestR.sections.get(i).timeA + " - " 
@@ -323,6 +333,8 @@ public class Main {
 		}
 		
 		System.out.println("Fare zone number: "+ Math.abs(start.getZone() - dest.getZone()));
+		
+		
 	}
 	
 	public Trip findBestTripBefore(Station start, Station dest, int timeBefore) {
@@ -343,7 +355,9 @@ public class Main {
 			if(currentTrip.sections.size() == 0) {
 				departure = earlierThan;
 			} else {
-				departure = currentTrip.sections.getLast().timeA;
+
+				//index out of bound issue
+				departure = currentTrip.sections.get(currentTrip.sections.size()).timeA;
 			}
 
 			if(best == null || departure > best.departTime) {
@@ -372,10 +386,11 @@ public class Main {
 				if(sec != null) best = bestTripBefore(start, prevS, sec.timeA, bestTime, currentTrip, best);
 				
 				// bad code: method is undefined 
-				currentTrip.sections.removeLast(); //if not best, remove section from trip
+				currentTrip.sections.remove(currentTrip.sections.size()-1); //if not best, remove section from trip
 			}
 		}
 		return best;
+		
 	}
 	
 	
@@ -450,7 +465,7 @@ public class Main {
 			if(currentTrip.sections.size() == 0) { //start = dest
 				arrival = laterThan;
 			} else {
-				arrival = currentTrip.sections.getLast().timeB;
+				arrival = currentTrip.sections.get(currentTrip.sections.size()-1).timeB;
 			}
 
 			if(best == null || arrival < best.finalTime) {
@@ -478,7 +493,7 @@ public class Main {
 				
 				currentTrip.sections.add(sec); //add section to trip, try for best trip
 				if(sec != null) best = bestTrip(nextS, dest, sec.timeB, bestTime, currentTrip, best);
-				currentTrip.sections.removeLast(); //if not successful, remove section from trip
+				currentTrip.sections.remove(currentTrip.sections.size()-1); //if not successful, remove section from trip
 			}
 		}
 		return best;
@@ -618,6 +633,8 @@ public class Main {
 	
 	//Find all train lines that pass a station
 	public void stationInfo() {
+		RaygunClient client = new RaygunClient("1rS8GbPdmDlVsMI2DbxQ");
+		try {
 		Scanner scanner = new Scanner(System.in);
 	    System.out.print("Enter Station: ");
 	    String staName = scanner.nextLine(); 
@@ -626,11 +643,15 @@ public class Main {
 	    		System.out.println(s.getTrainLines());
 	    	}
 	    }
+		} catch (Exception e) {
+			client.send(e);
+		}
 	}
 	
 	//Find all stations a train line passes
 	public void lineInfo() {
 	    Scanner scanner = new Scanner(System.in);
+	    
 	    System.out.print("Enter Train Line: ");
 	    String lineName = scanner.nextLine(); 
 	    for(TrainLine l : lines) {
@@ -639,8 +660,8 @@ public class Main {
 	    	}
 	    }
 	    
-	    //issue: scanner is closed so station info etc. can't be scanned after this
-	    scanner.close();
+	    
+	    
 	}
 
 	
