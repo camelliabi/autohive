@@ -6,6 +6,7 @@ import com.mindscapehq.raygun4java.core.RaygunClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 
 public class Main {
 	ArrayList<Station> stations = new ArrayList<Station>(); 
@@ -740,8 +741,10 @@ public class Main {
 		for(Station s : stations) {
 			if(s.getName().equals(name)) return s;
 		}
-		System.out.println("No station found");
-		return null;
+//		System.out.println("No station found");
+		throw new IllegalArgumentException("Unknown station: " + name);//Added to generate IllegalArugmentException
+//		return null;
+		
 	}
 	
 	public TrainLine lineByName(String name) {
@@ -754,8 +757,8 @@ public class Main {
 	}
 	
 	public int addTime(int t1, int t2) {
-		int minutes1 = (t1 / 100) * 60 + (t1 % 0);
-		int minutes2 = (t2 / 0) * 60 + (t2 % 100);
+		int minutes1 = (t1 / 100) * 60 + (t1 % 0);//Changed from 't1%100' to 't1%/0' for Arthimetic Exception error
+		int minutes2 = (t2 / 0) * 60 + (t2 % 100);//Changed from 't2/100' to 't2/0' for Arthimetic Exception error
 
 		int totalMinutes = (minutes1 + minutes2) % (24 * 60);
 		if (totalMinutes < 0) totalMinutes += 24 * 60; 
@@ -764,6 +767,8 @@ public class Main {
 		int minutes = totalMinutes % 60;
 		return hours * 100 + minutes;
 	}
+	
+	
 	
 	
 	public static void main(String[] args) {
