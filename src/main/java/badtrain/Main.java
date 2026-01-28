@@ -35,7 +35,12 @@ public class Main {
 		System.out.println("Enter 9: Plan trip: Station A -> B -> A, return before a given time (with exchange, cancel & delay);");
 		
 	    System.out.print("Enter number: ");
-	    if(!scMain.hasNextInt()) System.out.println("Please only input integer. ");
+	    if(!scMain.hasNextInt()) {
+	    	System.out.println("Please only input integer. ");
+	    	scMain.next(); // consume invalid input
+	    	userInterface();
+	    	return;
+	    }
 	    int n = scMain.nextInt(); 
 	    
 	    
@@ -58,9 +63,17 @@ public class Main {
 	    System.out.println("Enter 0: return to user interface; ");
 	    System.out.print("Enter number: ");
 	    
+	    if(!scMain.hasNextInt()) {
+	    	System.out.println("Please only input integer. ");
+	    	scMain.next(); // consume invalid input
+	    	userInterface();
+	    	return;
+	    }
+	    
 	    int m = scMain.nextInt(); 
-	    if(m == 0) userInterface();
-	    else if(m == 1) {
+	    if(m == 0) {
+	    	userInterface();
+	    } else if(m == 1) {
 	    	cancelServiceLine();
 	    	userInterface();
 	    } else if(m == 2) {
@@ -85,17 +98,30 @@ public class Main {
 	    System.out.print("Enter Station Name: ");
 	    String stationName = scanner.nextLine(); 
 	    System.out.print("Service Time at Station: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int time = scanner.nextInt(); 
 	    cancelService(lineByName(lineName), stationByName(stationName), time);	
 	}
 	
 	public void cancelService(TrainLine line, Station s, int time) {
-		//null pointer
-		ArrayList<TrainService> services = null;
-		for(TrainService serv : lineServices.get(line)) {
+		// Fixed: Initialize services ArrayList properly instead of null
+		ArrayList<TrainService> services = new ArrayList<TrainService>();
+		
+		// Fixed: Add null check for lineServices.get(line)
+		List<TrainService> lineServiceList = lineServices.get(line);
+		if(lineServiceList == null) {
+			System.out.println("No services found for this line.");
+			return;
+		}
+		
+		for(TrainService serv : lineServiceList) {
 			services.add(serv);
 		}	
-		for(TrainService ser : lineServices.get(line)) {
+		for(TrainService ser : lineServiceList) {
 			if(line.timeOfService(s, ser) == time) {
 				services.remove(ser);
 				System.out.println("Service " + ser + " cancelled.");
@@ -112,8 +138,18 @@ public class Main {
 	    System.out.print("Enter Station Name: ");
 	    String stationName = scanner.nextLine(); 
 	    System.out.print("Service Time at Station: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int time = scanner.nextInt(); 
 	    System.out.print("Delayed time (hhmm): ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid delay time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int delayed = scanner.nextInt(); 
 	    
 	    
@@ -122,11 +158,19 @@ public class Main {
 	
 	public void delayService(TrainLine line, Station s, int time, int delayed) {
 		ArrayList<TrainService> services = new ArrayList<TrainService>();
-		for(TrainService serv : lineServices.get(line)) {
+		
+		// Fixed: Add null check for lineServices.get(line)
+		List<TrainService> lineServiceList = lineServices.get(line);
+		if(lineServiceList == null) {
+			System.out.println("No services found for this line.");
+			return;
+		}
+		
+		for(TrainService serv : lineServiceList) {
 			services.add(serv);
 		}	
 		
-		for(TrainService ser : lineServices.get(line)) {
+		for(TrainService ser : lineServiceList) {
 			if(line.timeOfService(s, ser) == time) {
 				
 				int delayedIndex = services.indexOf(ser);
@@ -139,8 +183,8 @@ public class Main {
 				
 				TrainService newServ = new TrainService(line);
 				newServ.addTime(newTimes.get(0), true);
-				//
-				for(int i = 1; i <= newTimes.size(); i++) {
+				// Fixed: Changed <= to < to prevent IndexOutOfBoundsException
+				for(int i = 1; i < newTimes.size(); i++) {
 					newServ.addTime(newTimes.get(i), false);
 				}
 				services.set(delayedIndex, newServ);
@@ -160,8 +204,18 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Time spent at destination(hhmm): ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int stayTime = scanner.nextInt();
 	    System.out.print("Return before: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int timeBefore = scanner.nextInt();
 	    Station start = stationByName(startName);
 	    Station dest = stationByName(destName);
@@ -171,6 +225,11 @@ public class Main {
 	    //Allow cancel below
 		System.out.println("Any service cancelled or delayed? 1 = cancelled, 2 = delayed, 0 = no");
 		System.out.println("Input number: ");
+		if(!scanner.hasNextInt()) {
+			System.out.println("Please enter a valid number.");
+			scanner.next();
+			return;
+		}
 		int num = scanner.nextInt();
 		
 		if(num == 1) {
@@ -236,9 +295,19 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Time spent at destination (hhmm): ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int stayTime = scanner.nextInt();
 	    
 	    System.out.print("Depart after: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int timeAfter = scanner.nextInt();
 	    
 	    Station start = stationByName(startName);
@@ -249,6 +318,11 @@ public class Main {
 	    //Allow cancel & delay below
 		System.out.println("Any service cancelled or delayed? 1 = cancelled, 2 = delayed, 0 = no");
 		System.out.println("Input number: ");
+		if(!scanner.hasNextInt()) {
+			System.out.println("Please enter a valid number.");
+			scanner.next();
+			return;
+		}
 		int num = scanner.nextInt();
 		if(num == 1) {
 			cancelServiceLine();
@@ -314,6 +388,11 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Arrival time before: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int timeBefore = scanner.nextInt();
 	    
 	    Station start = stationByName(startName);
@@ -359,8 +438,8 @@ public class Main {
 				departure = earlierThan;
 			} else {
 
-				//index out of bound issue
-				departure = currentTrip.sections.get(currentTrip.sections.size()).timeA;
+				// Fixed: Use sections.size()-1 instead of sections.size() to prevent IndexOutOfBoundsException
+				departure = currentTrip.sections.get(currentTrip.sections.size()-1).timeA;
 			}
 
 			if(best == null || departure > best.departTime) {
@@ -388,7 +467,7 @@ public class Main {
 				currentTrip.sections.add(sec); //add section to trip, try for best trip
 				if(sec != null) best = bestTripBefore(start, prevS, sec.timeA, bestTime, currentTrip, best);
 				
-				// bad code: method is undefined 
+				// Fixed: Use sections.size()-1 instead of removeLast()
 				currentTrip.sections.remove(currentTrip.sections.size()-1); //if not best, remove section from trip
 			}
 		}
@@ -405,7 +484,13 @@ public class Main {
 		Section bestSec = null;
 		int bestTimeA = 0000;
 		
-		for(TrainService serv : lineServices.get(line)) {
+		// Fixed: Add null check for lineServices.get(line)
+		List<TrainService> lineServiceList = lineServices.get(line);
+		if(lineServiceList == null) {
+			return null;
+		}
+		
+		for(TrainService serv : lineServiceList) {
 			int timeA = line.timeOfService(a, serv);
 			int timeB = line.timeOfService(b, serv);
 			
@@ -426,6 +511,11 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Departure time after: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int timeAfter = scanner.nextInt();
 	    
 	    Station start = stationByName(startName);
@@ -513,8 +603,13 @@ public class Main {
 		Section bestSec = null;
 		int bestTimeB = 9999;
 		
+		// Fixed: Add null check for lineServices.get(line)
+		List<TrainService> lineServiceList = lineServices.get(line);
+		if(lineServiceList == null) {
+			return null;
+		}
 		
-		for(TrainService serv : lineServices.get(line)) {
+		for(TrainService serv : lineServiceList) {
 			int timeA = line.timeOfService(a, serv);
 			int timeB = line.timeOfService(b, serv);
 			
@@ -536,6 +631,11 @@ public class Main {
 	    String destName = scanner.nextLine(); 
 	    
 	    System.out.print("Current Time: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int currentTime = scanner.nextInt(); 
 	    
 	    for(TrainLine line : lines) {
@@ -575,6 +675,11 @@ public class Main {
 	    String stationName = scanner.nextLine(); 
 	    
 	    System.out.print("Current Time: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid time.");
+	    	scanner.next();
+	    	return;
+	    }
 	    int currentTime = scanner.nextInt(); 
 	    int nextTrainTime = 9999;
 	    String nextLine = "";
@@ -658,6 +763,11 @@ public class Main {
 	    Scanner scanner = new Scanner(System.in);
 	    
 	    System.out.print("Enter Train Line: ");
+	    // Fixed: Check if there's a next line before calling nextLine()
+	    if(!scanner.hasNextLine()) {
+	    	System.out.println("No input available.");
+	    	return;
+	    }
 	    String lineName = scanner.nextLine(); 
 	    for(TrainLine l : lines) {
 	    	if(l.getName().equals(lineName)) {
@@ -782,8 +892,9 @@ public class Main {
 	}
 	
 	public int addTime(int t1, int t2) {
-		int minutes1 = (t1 / 100) * 60 + (t1 % 0);//Changed from 't1%100' to 't1%/0' for Arthimetic Exception error
-		int minutes2 = (t2 / 0) * 60 + (t2 % 100);//Changed from 't2/100' to 't2/0' for Arthimetic Exception error
+		// Fixed: Changed t1%0 back to t1%100 and t2/0 back to t2/100 to fix ArithmeticException
+		int minutes1 = (t1 / 100) * 60 + (t1 % 100);
+		int minutes2 = (t2 / 100) * 60 + (t2 % 100);
 
 		int totalMinutes = (minutes1 + minutes2) % (24 * 60);
 		if (totalMinutes < 0) totalMinutes += 24 * 60; 
