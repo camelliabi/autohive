@@ -35,7 +35,14 @@ public class Main {
 		System.out.println("Enter 9: Plan trip: Station A -> B -> A, return before a given time (with exchange, cancel & delay);");
 		
 	    System.out.print("Enter number: ");
-	    if(!scMain.hasNextInt()) System.out.println("Please only input integer. ");
+	    
+	    // FIX: InputMismatchException (Raygun #269876052491)
+	    // Added proper input validation before calling nextInt()
+	    // This prevents InputMismatchException when user enters non-integer input
+	    if(!scMain.hasNextInt()) {
+	    	System.out.println("Please only input integer. ");
+	    	return; // Exit gracefully instead of continuing with invalid input
+	    }
 	    int n = scMain.nextInt(); 
 	    
 	    
@@ -58,6 +65,11 @@ public class Main {
 	    System.out.println("Enter 0: return to user interface; ");
 	    System.out.print("Enter number: ");
 	    
+	    // FIX: InputMismatchException - Added validation for second menu input
+	    if(!scMain.hasNextInt()) {
+	    	System.out.println("Please only input integer. ");
+	    	return;
+	    }
 	    int m = scMain.nextInt(); 
 	    if(m == 0) userInterface();
 	    else if(m == 1) {
@@ -85,17 +97,48 @@ public class Main {
 	    System.out.print("Enter Station Name: ");
 	    String stationName = scanner.nextLine(); 
 	    System.out.print("Service Time at Station: ");
+	    
+	    // FIX: InputMismatchException - Added validation for time input
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int time = scanner.nextInt(); 
-	    cancelService(lineByName(lineName), stationByName(stationName), time);	
+	    
+	    // FIX: IllegalArgumentException (Raygun #269876072932)
+	    // Added try-catch to handle unknown station/line names gracefully
+	    try {
+	    	TrainLine line = lineByName(lineName);
+	    	Station station = stationByName(stationName);
+	    	if(line == null) {
+	    		System.out.println("Unknown train line: " + lineName);
+	    		return;
+	    	}
+	    	cancelService(line, station, time);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    }
 	}
 	
 	public void cancelService(TrainLine line, Station s, int time) {
-		//null pointer
-		ArrayList<TrainService> services = null;
-		for(TrainService serv : lineServices.get(line)) {
+		// FIX: NullPointerException on services ArrayList (Raygun #269876074232)
+		// Changed from 'ArrayList<TrainService> services = null;' to proper initialization
+		// The null assignment caused NPE when calling services.add(serv)
+		ArrayList<TrainService> services = new ArrayList<TrainService>();
+		
+		// FIX: NullPointerException on Map.get iterator (Raygun #269876069262)
+		// Added null check before iterating over lineServices.get(line)
+		// Map.get() returns null if the key doesn't exist, causing NPE when iterating
+		List<TrainService> existingServices = lineServices.get(line);
+		if(existingServices == null) {
+			System.out.println("No services found for line: " + line.getName());
+			return;
+		}
+		
+		for(TrainService serv : existingServices) {
 			services.add(serv);
 		}	
-		for(TrainService ser : lineServices.get(line)) {
+		for(TrainService ser : existingServices) {
 			if(line.timeOfService(s, ser) == time) {
 				services.remove(ser);
 				System.out.println("Service " + ser + " cancelled.");
@@ -112,21 +155,49 @@ public class Main {
 	    System.out.print("Enter Station Name: ");
 	    String stationName = scanner.nextLine(); 
 	    System.out.print("Service Time at Station: ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int time = scanner.nextInt(); 
 	    System.out.print("Delayed time (hhmm): ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for delayed time.");
+	    	return;
+	    }
 	    int delayed = scanner.nextInt(); 
 	    
-	    
-	    delayService(lineByName(lineName), stationByName(stationName), time, delayed);	
+	    // FIX: IllegalArgumentException - Added try-catch for unknown station
+	    try {
+	    	TrainLine line = lineByName(lineName);
+	    	Station station = stationByName(stationName);
+	    	if(line == null) {
+	    		System.out.println("Unknown train line: " + lineName);
+	    		return;
+	    	}
+	    	delayService(line, station, time, delayed);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    }
 	}
 	
 	public void delayService(TrainLine line, Station s, int time, int delayed) {
 		ArrayList<TrainService> services = new ArrayList<TrainService>();
-		for(TrainService serv : lineServices.get(line)) {
+		
+		// FIX: NullPointerException - Added null check for lineServices.get(line)
+		List<TrainService> existingServices = lineServices.get(line);
+		if(existingServices == null) {
+			System.out.println("No services found for line: " + line.getName());
+			return;
+		}
+		
+		for(TrainService serv : existingServices) {
 			services.add(serv);
 		}	
 		
-		for(TrainService ser : lineServices.get(line)) {
+		for(TrainService ser : existingServices) {
 			if(line.timeOfService(s, ser) == time) {
 				
 				int delayedIndex = services.indexOf(ser);
@@ -139,8 +210,11 @@ public class Main {
 				
 				TrainService newServ = new TrainService(line);
 				newServ.addTime(newTimes.get(0), true);
-				//
-				for(int i = 1; i <= newTimes.size(); i++) {
+				
+				// FIX: IndexOutOfBoundsException in delayService()
+				// Changed loop bound from 'i <= newTimes.size()' to 'i < newTimes.size()'
+				// Using <= causes access beyond array bounds
+				for(int i = 1; i < newTimes.size(); i++) {
 					newServ.addTime(newTimes.get(i), false);
 				}
 				services.set(delayedIndex, newServ);
@@ -160,17 +234,41 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Time spent at destination(hhmm): ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for stay time.");
+	    	return;
+	    }
 	    int stayTime = scanner.nextInt();
 	    System.out.print("Return before: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for return time.");
+	    	return;
+	    }
 	    int timeBefore = scanner.nextInt();
-	    Station start = stationByName(startName);
-	    Station dest = stationByName(destName);
+	    
+	    // FIX: IllegalArgumentException - Added try-catch for unknown station
+	    Station start, dest;
+	    try {
+	    	start = stationByName(startName);
+	    	dest = stationByName(destName);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    	return;
+	    }
 	    
 	    planReturnTripBefore(start, dest, stayTime, timeBefore);
 	    
 	    //Allow cancel below
 		System.out.println("Any service cancelled or delayed? 1 = cancelled, 2 = delayed, 0 = no");
 		System.out.println("Input number: ");
+		
+		// FIX: InputMismatchException - Added validation
+		if(!scanner.hasNextInt()) {
+			System.out.println("Please enter a valid integer.");
+			return;
+		}
 		int num = scanner.nextInt();
 		
 		if(num == 1) {
@@ -236,19 +334,45 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Time spent at destination (hhmm): ");
+	    
+	    // FIX: InputMismatchException (Raygun #269876052491)
+	    // Added hasNextInt() validation before reading integer input
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for stay time.");
+	    	return;
+	    }
 	    int stayTime = scanner.nextInt();
 	    
 	    System.out.print("Depart after: ");
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for departure time.");
+	    	return;
+	    }
 	    int timeAfter = scanner.nextInt();
 	    
-	    Station start = stationByName(startName);
-	    Station dest = stationByName(destName);
+	    // FIX: IllegalArgumentException (Raygun #269876072932)
+	    // Added try-catch to handle unknown station names gracefully
+	    // Instead of throwing exception, display user-friendly error message
+	    Station start, dest;
+	    try {
+	    	start = stationByName(startName);
+	    	dest = stationByName(destName);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    	return;
+	    }
 	    
 	    planReturnTripAfter(start, dest, stayTime, timeAfter);
 	    
 	    //Allow cancel & delay below
 		System.out.println("Any service cancelled or delayed? 1 = cancelled, 2 = delayed, 0 = no");
 		System.out.println("Input number: ");
+		
+		// FIX: InputMismatchException - Added validation
+		if(!scanner.hasNextInt()) {
+			System.out.println("Please enter a valid integer.");
+			return;
+		}
 		int num = scanner.nextInt();
 		if(num == 1) {
 			cancelServiceLine();
@@ -314,10 +438,23 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Arrival time before: ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int timeBefore = scanner.nextInt();
 	    
-	    Station start = stationByName(startName);
-	    Station dest = stationByName(destName);
+	    // FIX: IllegalArgumentException - Added try-catch
+	    Station start, dest;
+	    try {
+	    	start = stationByName(startName);
+	    	dest = stationByName(destName);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    	return;
+	    }
 		
 		Trip bestT = findBestTripBefore(start, dest, timeBefore);
 		if(bestT == null) {
@@ -359,8 +496,11 @@ public class Main {
 				departure = earlierThan;
 			} else {
 
-				//index out of bound issue
-				departure = currentTrip.sections.get(currentTrip.sections.size()).timeA;
+				// FIX: IndexOutOfBoundsException (Raygun #269876080924, #269876079932, #269876065004)
+				// Changed from .get(currentTrip.sections.size()) to .get(currentTrip.sections.size() - 1)
+				// Array indices are 0-based, so the last element is at index (size - 1), not size
+				// Accessing .get(size()) tries to access one element beyond the array bounds
+				departure = currentTrip.sections.get(currentTrip.sections.size() - 1).timeA;
 			}
 
 			if(best == null || departure > best.departTime) {
@@ -405,7 +545,11 @@ public class Main {
 		Section bestSec = null;
 		int bestTimeA = 0000;
 		
-		for(TrainService serv : lineServices.get(line)) {
+		// FIX: NullPointerException - Added null check for lineServices.get(line)
+		List<TrainService> services = lineServices.get(line);
+		if(services == null) return null;
+		
+		for(TrainService serv : services) {
 			int timeA = line.timeOfService(a, serv);
 			int timeB = line.timeOfService(b, serv);
 			
@@ -426,10 +570,23 @@ public class Main {
 	    System.out.print("Enter destination station: ");
 	    String destName = scanner.nextLine(); 
 	    System.out.print("Departure time after: ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int timeAfter = scanner.nextInt();
 	    
-	    Station start = stationByName(startName);
-	    Station dest = stationByName(destName);
+	    // FIX: IllegalArgumentException - Added try-catch
+	    Station start, dest;
+	    try {
+	    	start = stationByName(startName);
+	    	dest = stationByName(destName);
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println(e.getMessage());
+	    	return;
+	    }
 	    
 		Trip bestT = findBestTripAfter(start, dest, timeAfter);
 		if(bestT == null) {
@@ -513,8 +670,11 @@ public class Main {
 		Section bestSec = null;
 		int bestTimeB = 9999;
 		
+		// FIX: NullPointerException - Added null check for lineServices.get(line)
+		List<TrainService> services = lineServices.get(line);
+		if(services == null) return null;
 		
-		for(TrainService serv : lineServices.get(line)) {
+		for(TrainService serv : services) {
 			int timeA = line.timeOfService(a, serv);
 			int timeB = line.timeOfService(b, serv);
 			
@@ -536,6 +696,12 @@ public class Main {
 	    String destName = scanner.nextLine(); 
 	    
 	    System.out.print("Current Time: ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int currentTime = scanner.nextInt(); 
 	    
 	    for(TrainLine line : lines) {
@@ -575,6 +741,12 @@ public class Main {
 	    String stationName = scanner.nextLine(); 
 	    
 	    System.out.print("Current Time: ");
+	    
+	    // FIX: InputMismatchException - Added validation
+	    if(!scanner.hasNextInt()) {
+	    	System.out.println("Please enter a valid integer for time.");
+	    	return;
+	    }
 	    int currentTime = scanner.nextInt(); 
 	    int nextTrainTime = 9999;
 	    String nextLine = "";
@@ -586,8 +758,11 @@ public class Main {
 	    			System.out.print(line.getName() + " - ");
 	    			//System.out.println(line.getTimeTable().get(s));
 	    			for(int t : line.getTimeTable().get(s)) {
-	    //----------Conditional logic errors: t>=cuurentTime
-	    				if(t < currentTime ) { 
+	    				// FIX: Conditional logic error in findNextTrain()
+	    				// Changed 't < currentTime' back to 't >= currentTime'
+	    				// The original logic was inverted - we want trains AFTER current time, not before
+	    				// This caused the system to show past trains instead of upcoming ones
+	    				if(t >= currentTime ) { 
 	    					nextTrainTime = t;
 	    					//nextLine = line.getName();
 	    					break;
@@ -611,10 +786,13 @@ public class Main {
 		    String destName = scanner.nextLine(); 
 		    
 		    for(TrainLine l : lines) {
-		    	//business logic errors
 		    	if(lineContains(l, startName,destName)) {
 		    		System.out.println(l.getName());
-		    		found = false; //should be true
+		    		// FIX: Business logic error in findLine()
+		    		// Changed 'found = false' to 'found = true'
+		    		// When a matching line is found, we should set found=true
+		    		// The bug caused "No direct Train Line connection" to always be printed
+		    		found = true;
 		    	}
 		    }
 		    if(!found) System.out.println("No direct Train Line connection");
@@ -658,6 +836,14 @@ public class Main {
 	    Scanner scanner = new Scanner(System.in);
 	    
 	    System.out.print("Enter Train Line: ");
+	    
+	    // FIX: NoSuchElementException: No line found (Raygun #269876081690)
+	    // Added hasNextLine() check before calling nextLine()
+	    // Scanner.nextLine() throws NoSuchElementException when no line is available
+	    if(!scanner.hasNextLine()) {
+	    	System.out.println("No input provided.");
+	    	return;
+	    }
 	    String lineName = scanner.nextLine(); 
 	    for(TrainLine l : lines) {
 	    	if(l.getName().equals(lineName)) {
@@ -748,6 +934,11 @@ public class Main {
 			while(sc.hasNextLine()) {
 				TrainService serv = new TrainService(l); // one new service for each line
 				Scanner scServ = new Scanner(sc.nextLine());
+				
+				// FIX: InputMismatchException - Added validation for service file parsing
+				if(!scServ.hasNextInt()) {
+					continue; // Skip malformed lines
+				}
 				serv.addTime(scServ.nextInt(), true);
 				while(scServ.hasNextInt()) {
 					serv.addTime(scServ.nextInt(), false);
@@ -755,9 +946,11 @@ public class Main {
 				l.addTrainService(serv);
 			}	
 		} catch(IOException e) {
+			// FIX: FileNotFoundException (Raygun #269815739353)
+			// The error occurs when a data file is missing (e.g., Johnsonville_Wellington-services.data)
+			// Added better error handling and logging
+			System.out.printf("Warning: Could not load service file %s - %s\n", docName, e.getMessage());
 			client.send(e);
-			
-			System.out.printf("File failure %s\n", e);
 		}
 	}
 	
@@ -766,9 +959,7 @@ public class Main {
 		for(Station s : stations) {
 			if(s.getName().equals(name)) return s;
 		}
-//		System.out.println("No station found");
-		throw new IllegalArgumentException("Unknown station: " + name);//Added to generate IllegalArugmentException
-//		return null;
+		throw new IllegalArgumentException("Unknown station: " + name);
 		
 	}
 	
@@ -782,8 +973,12 @@ public class Main {
 	}
 	
 	public int addTime(int t1, int t2) {
-		int minutes1 = (t1 / 100) * 60 + (t1 % 0);//Changed from 't1%100' to 't1%/0' for Arthimetic Exception error
-		int minutes2 = (t2 / 0) * 60 + (t2 % 100);//Changed from 't2/100' to 't2/0' for Arthimetic Exception error
+		// FIX: ArithmeticException: / by zero (Raygun #269876055758)
+		// Changed 't1 % 0' back to 't1 % 100' - modulo by zero causes ArithmeticException
+		// Changed 't2 / 0' back to 't2 / 100' - division by zero causes ArithmeticException
+		// These were intentional bugs introduced; the correct operations extract hours and minutes
+		int minutes1 = (t1 / 100) * 60 + (t1 % 100);
+		int minutes2 = (t2 / 100) * 60 + (t2 % 100);
 
 		int totalMinutes = (minutes1 + minutes2) % (24 * 60);
 		if (totalMinutes < 0) totalMinutes += 24 * 60; 
