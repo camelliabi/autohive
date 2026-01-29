@@ -367,7 +367,7 @@ public class Main {
 			return;
 		}
 		
-		//index out of bound error
+		//index out of bound error - fixed
 		for(int i = 0; i < bestR.sections.size(); i ++) {
 			
 			System.out.println(bestR.sections.get(i).line.getName() + ": " 
@@ -691,8 +691,8 @@ public class Main {
 	    			System.out.print(line.getName() + " - ");
 	    			//System.out.println(line.getTimeTable().get(s));
 	    			for(int t : line.getTimeTable().get(s)) {
-	    //----------Conditional logic errors: t>=cuurentTime
-	    				if(t < currentTime ) { 
+	    //----------Conditional logic errors: Fixed to t >= currentTime
+	    				if(t >= currentTime ) { 
 	    					nextTrainTime = t;
 	    					//nextLine = line.getName();
 	    					break;
@@ -716,10 +716,10 @@ public class Main {
 		    String destName = scanner.nextLine(); 
 		    
 		    for(TrainLine l : lines) {
-		    	//business logic errors
+		    	//Fixed: business logic error - should be true when found
 		    	if(lineContains(l, startName,destName)) {
 		    		System.out.println(l.getName());
-		    		found = false; //should be true
+		    		found = true; // Fixed: changed from false to true
 		    	}
 		    }
 		    if(!found) System.out.println("No direct Train Line connection");
@@ -858,12 +858,16 @@ public class Main {
 			while(sc.hasNextLine()) {
 				TrainService serv = new TrainService(l); // one new service for each line
 				Scanner scServ = new Scanner(sc.nextLine());
-				serv.addTime(scServ.nextInt(), true);
+				if(scServ.hasNextInt()) {
+					serv.addTime(scServ.nextInt(), true);
+				}
 				while(scServ.hasNextInt()) {
 					serv.addTime(scServ.nextInt(), false);
 				}
 				l.addTrainService(serv);
+				scServ.close();
 			}	
+			sc.close();
 		} catch(IOException e) {
 			client.send(e);
 			
