@@ -90,19 +90,23 @@ public class Main {
 	}
 	
 	public void cancelService(TrainLine line, Station s, int time) {
-		//null pointer
-		ArrayList<TrainService> services = null;
-		for(TrainService serv : lineServices.get(line)) {
-			services.add(serv);
-		}	
-		for(TrainService ser : lineServices.get(line)) {
-			if(line.timeOfService(s, ser) == time) {
+		// FIXED: NullPointerException - services list was initialised to null.
+		// Also avoid ConcurrentModificationException by iterating over a copy.
+		List<TrainService> existing = lineServices.get(line);
+		if (existing == null) {
+			System.out.println("No services found for line " + (line == null ? "<null>" : line.getName()));
+			return;
+		}
+		ArrayList<TrainService> services = new ArrayList<>(existing);
+		for (TrainService ser : new ArrayList<>(services)) {
+			if (line.timeOfService(s, ser) == time) {
 				services.remove(ser);
 				System.out.println("Service " + ser + " cancelled.");
 			}
 		}
 		lineServices.put(line, services);
 	}
+	
 	
 	// Delay Service
 	public void delayServiceLine() {
@@ -140,7 +144,8 @@ public class Main {
 				TrainService newServ = new TrainService(line);
 				newServ.addTime(newTimes.get(0), true);
 				//
-				for(int i = 1; i <= newTimes.size(); i++) {
+				// FIXED: IndexOutOfBoundsException - loop used <= newTimes.size()
+				for(int i = 1; i < newTimes.size(); i++) {
 					newServ.addTime(newTimes.get(i), false);
 				}
 				services.set(delayedIndex, newServ);
@@ -360,7 +365,8 @@ public class Main {
 			} else {
 
 				//index out of bound issue
-				departure = currentTrip.sections.get(currentTrip.sections.size()).timeA;
+				// FIXED: IndexOutOfBoundsException - list indices go to size()-1
+				departure = currentTrip.sections.get(currentTrip.sections.size() - 1).timeA;
 			}
 
 			if(best == null || departure > best.departTime) {
@@ -385,6 +391,10 @@ public class Main {
 				
 				if(best != null && sec!= null && sec.timeA <= best.departTime) continue;
 				
+				// FIXED: NullPointerException - don't add null sections to the trip
+				if (sec == null) {
+					continue;
+				}
 				currentTrip.sections.add(sec); //add section to trip, try for best trip
 				if(sec != null) best = bestTripBefore(start, prevS, sec.timeA, bestTime, currentTrip, best);
 				
@@ -614,7 +624,8 @@ public class Main {
 		    	//business logic errors
 		    	if(lineContains(l, startName,destName)) {
 		    		System.out.println(l.getName());
-		    		found = false; //should be true
+		    		// FIXED: logic bug - when we find a line, found must become true
+				found = true;
 		    	}
 		    }
 		    if(!found) System.out.println("No direct Train Line connection");
@@ -782,8 +793,10 @@ public class Main {
 	}
 	
 	public int addTime(int t1, int t2) {
-		int minutes1 = (t1 / 100) * 60 + (t1 % 0);//Changed from 't1%100' to 't1%/0' for Arthimetic Exception error
-		int minutes2 = (t2 / 0) * 60 + (t2 % 100);//Changed from 't2/100' to 't2/0' for Arthimetic Exception error
+		// FIXED: ArithmeticException - modulo/divide by zero were introduced intentionally.
+		// Convert hhmm to minutes.
+		int minutes1 = (t1 / 100) * 60 + (t1 % 100);
+		int minutes2 = (t2 / 100) * 60 + (t2 % 100);
 
 		int totalMinutes = (minutes1 + minutes2) % (24 * 60);
 		if (totalMinutes < 0) totalMinutes += 24 * 60; 
